@@ -1,3 +1,5 @@
+import { cleanMarkers } from './expression.js';
+
 export const PERSONA_VOICES = {
   tsundere: 'cute-girl',
   kalem: 'calm-girl',
@@ -39,7 +41,9 @@ export async function textToSpeech({
   baseUrl = (process.env.LLM_BASE_URL || 'https://api.xkiro.com/v1').replace(/\/+$/, ''),
   apiKey = process.env.LLM_API_KEY,
 } = {}) {
-  const cleanText = (text || '')
+  // Buang seluruh emoji dan kaomoji sebelum dikirim ke endpoint TTS (K3)
+  const markerCleaned = cleanMarkers(text);
+  const cleanText = (markerCleaned || '')
     .replace(/<[^>]+>/g, '')
     .replace(/\[[A-Z0-9_]+:[^\]]*\]/gi, '')
     .replace(/[*_`~\[\]]/g, '')

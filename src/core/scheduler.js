@@ -2,6 +2,8 @@ import { InlineKeyboard } from 'grammy';
 import { getDb } from './db.js';
 import { computeNextDue } from './time_parser.js';
 import { getPersonality } from '../personalities/index.js';
+import { getEffectiveExpressionMode } from './settings.js';
+import { shapeReply } from './expression.js';
 import { processDailySchedules } from '../features/schedules.js';
 import { processProactiveMessages } from './proactive.js';
 import { syncDailyPrayerReminders } from './prayer.js';
@@ -81,8 +83,16 @@ export async function processPendingReminders(bot, now = Date.now()) {
 
       const template =
         persona.strings?.reminderFired ??
-        'Hei bodoh, waktunya: {text}. B-bukan berarti aku peduli ya! 😤';
-      text = template.replace('{text}', reminder.text);
+        'Hei bodoh, waktunya: {text}. B-bukan berarti aku peduli ya! (¬_¬)';
+      const rawReminderText = template.replace('{text}', reminder.text);
+      const exprMode = getEffectiveExpressionMode({
+        chat: { id: reminder.chat_id, type: reminder.chat_id < 0 ? 'group' : 'private' },
+        from: { id: reminder.user_id },
+      });
+      text = shapeReply(rawReminderText, {
+        mode: exprMode,
+        persona: persona.id || 'tsundere',
+      });
       keyboard = buildReminderKeyboard(reminder.id);
 
       // Jika pengingat dibuat di grup (chat_id < 0), sebut pembuatnya

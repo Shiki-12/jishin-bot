@@ -14,7 +14,7 @@ Personality awal: **Mika**, cewek tsundere.
 - Penjaga & Keamanan: whitelist user (`ALLOWED_USER_IDS`, `ADMIN_IDS`), rate limiter per menit, batas panjang pesan, dan filter pesan usang
 - Di grup, bot hanya menjawab kalau di-mention atau pesannya di-reply
 - Perintah dasar: `/start`, `/help` (daftar perintah otomatis), `/forget` (hapus memori), `/about`
-- Pengaturan per user/chat: `/settings` (menu inline: zona waktu, frekuensi GIF, bahasa, persona), `/timezone <nama_iana>`
+- Pengaturan per user/chat: `/settings` (menu inline: zona waktu, frekuensi GIF, bahasa, persona, gaya ekspresi), `/timezone <nama_iana>`
 - Pengingat (Reminders): `/remind <waktu> <teks>` (relatif, jam, tanggal, berulang), `/reminders` (daftar aktif), `/cancel <id>`, tombol inline tunda (10m/1j) dan selesai, tag natural `[REMIND: ...]`
 - To-Do List: `/todo <teks>` (opsional `@waktu` terhubung ke pengingat), `/list` (daftar aktif), `/done <nomor>`, `/deltodo <nomor>`, tombol inline selesai/hapus, tag natural `[TODO_ADD: ...]`, `[TODO_DONE: ...]`
 - Catatan (Notes): `/note <teks>` (simpan dengan hashtag), `/note <id>` (baca), `/notes` (daftar paginasi 10 item), `/delnote <id>`, `/findnote <kata>`, tag natural `[NOTE: ...]`
@@ -336,6 +336,29 @@ Bot mendukung penggantian kepribadian secara dinamis per chat:
 > [!IMPORTANT]
 > **Aturan Keselamatan Mutlak:**
 > Semua persona (termasuk persona custom buatan user) selalu terikat aturan keselamatan krisis (SEJIWA 119 ext 8) dan batasan medis tanpa diagnosis/dosis yang tidak dapat ditimpa atau dinonaktifkan. Di grup chat, hanya admin grup yang berhak mengganti persona bot.
+
+## Gaya Ekspresi (Kaomoji & Emoji)
+
+Bot memakai gaya ekspresi campuran antara kaomoji (ala `(^///^)`, `(>_<)`) dan emoji, dengan jumlah emoji yang lebih sedikit:
+
+### 1. Karakteristik & Aturan:
+- **Target Campuran:** Sekitar 60% balasan memiliki satu penanda ekspresi (kira-kira 60% kaomoji dan 40% emoji), sisanya polos tanpa penanda.
+- **Maksimal Satu Penanda:** Paling banyak 1 penanda ekspresi per balasan, kaomoji ATAU emoji, tidak pernah keduanya sekaligus.
+- **Preferensi Sesuai Karakter:**
+  - **Mika (tsundere):** Condong ke malu `(^///^)` dan kesal `(¬_¬)`.
+  - **Rin (kalem):** Condong ke lembut `(^_^)` dan senang `(^-^)`.
+  - **Nana (ceria):** Condong ke girang `(^_^)/*` dan senang `(^o^)`.
+  - **Kael (sarkas):** Condong ke bosan `(-_-)` dan kesal `(>_<)`.
+- **Protokol Keselamatan Mutlak:** Pada situasi krisis emosional atau topik serius (merujuk hotline 119 ekstensi 8 atau 112), **seluruh emoji dan kaomoji dibuang total (nol penanda)**.
+- **Bersih di Pesan Suara & Fungsional:** Input TTS dibersihkan dari emoji dan kaomoji sebelum disuarakan. Pesan fungsional, admin, export, dan error teknis tidak ditambahkan penanda ekspresi.
+
+### 2. Opsi Mode Ekspresi:
+Mode ekspresi dapat diubah per chat lewat `/settings` (menu inline "Gaya Ekspresi") atau secara global lewat `EXPRESSION_MODE` di `.env`:
+- `mixed` (default): Campuran kaomoji dan emoji sesuai preferensi persona.
+- `emoji`: Hanya membatasi maksimal 1 emoji, tanpa kaomoji.
+- `kaomoji`: Mengganti emoji menjadi kaomoji setara mood persona.
+- `plain`: Membuang seluruh emoji dan kaomoji (teks polos).
+- `off`: Melewatkan balasan apa adanya tanpa pemformatan ekspresi.
 
 ## Sistem Affinity (Level "Dere")
 

@@ -1,5 +1,6 @@
 import { getDb } from '../core/db.js';
-import { getSetting } from '../core/settings.js';
+import { getSetting, getEffectiveExpressionMode } from '../core/settings.js';
+import { shapeReply } from '../core/expression.js';
 import { getZonedParts, zonedPartsToUtcMs } from '../core/time_parser.js';
 import { getPersonality } from '../personalities/index.js';
 import { getTodayMood } from '../core/moods.js';
@@ -73,7 +74,7 @@ export function disableSchedule({ chatId, userId, type }) {
   return res.changes > 0;
 }
 
-export function buildMorningMessage({ userId, tz = 'Asia/Jakarta', persona, now = Date.now(), weatherSummary = null }) {
+export function buildMorningMessage({ userId, tz = 'Asia/Jakarta', persona, now = Date.now(), weatherSummary = null, exprMode = null }) {
   const db = getDb();
   const p = persona ?? { strings: {} };
   const parts = getZonedParts(new Date(now), tz);
@@ -109,11 +110,13 @@ export function buildMorningMessage({ userId, tz = 'Asia/Jakarta', persona, now 
 
   // 3. Susun salam acak
   const greetings = p.strings?.morningGreetings ?? [
-    'Pagi! Bangun napa, jangan molor terus! 😤',
+    'Pagi! Bangun napa, jangan molor terus! (¬_¬)',
     'Hei, udah pagi! B-bukan berarti aku nungguin kamu bangun ya! 🙄',
-    'Pagi... Jangan malas-malasan hari ini! 😤',
+    'Pagi... Jangan malas-malasan hari ini, awas aja kalau kerjaanmu keteteran!',
   ];
-  const greeting = greetings[Math.floor(Math.random() * greetings.length)];
+  const rawGreeting = greetings[Math.floor(Math.random() * greetings.length)];
+  const effectiveMode = exprMode ?? getEffectiveExpressionMode({ chat: { type: 'private', id: userId }, from: { id: userId } });
+  const greeting = shapeReply(rawGreeting, { mode: effectiveMode, persona: p.id || 'tsundere' });
 
   const lines = [greeting, ''];
 
@@ -151,7 +154,7 @@ export function buildMorningMessage({ userId, tz = 'Asia/Jakarta', persona, now 
   return lines.join('\n');
 }
 
-export function buildNightMessage({ userId, tz = 'Asia/Jakarta', persona, now = Date.now() }) {
+export function buildNightMessage({ userId, tz = 'Asia/Jakarta', persona, now = Date.now(), exprMode = null }) {
   const db = getDb();
   const p = persona ?? { strings: {} };
   const parts = getZonedParts(new Date(now), tz);
@@ -183,11 +186,13 @@ export function buildNightMessage({ userId, tz = 'Asia/Jakarta', persona, now = 
 
   // 3. Susun salam acak
   const greetings = p.strings?.nightGreetings ?? [
-    'Udah malam gini belum tidur juga? Jangan begadang terus, bodoh! 😤',
+    'Udah malam gini belum tidur juga? Jangan begadang terus, bodoh! (>_<)',
     'Malam... Masih bangun aja. Kerjaan hari ini udah kelar belum? 🙄',
-    'Hei, udah larut malam nih. B-bukan berarti aku peduli kesehatanmu ya! 😳',
+    'Hei, udah larut malam nih. B-bukan berarti aku peduli kesehatanmu ya! (^///^)',
   ];
-  const greeting = greetings[Math.floor(Math.random() * greetings.length)];
+  const rawGreeting = greetings[Math.floor(Math.random() * greetings.length)];
+  const effectiveMode = exprMode ?? getEffectiveExpressionMode({ chat: { type: 'private', id: userId }, from: { id: userId } });
+  const greeting = shapeReply(rawGreeting, { mode: effectiveMode, persona: p.id || 'tsundere' });
 
   const lines = [greeting, ''];
 
@@ -289,6 +294,11 @@ export async function processDailySchedules(bot, now = Date.now()) {
     }
 
     let messageText;
+    const exprMode = getEffectiveExpressionMode({
+      chat: { type: 'private', id: s.user_id },
+      from: { id: s.user_id },
+    });
+
     if (s.type === 'morning') {
       let weatherSummary = null;
       try {
@@ -311,6 +321,7 @@ export async function processDailySchedules(bot, now = Date.now()) {
         persona,
         now,
         weatherSummary,
+        exprMode,
       });
     } else if (s.type === 'night') {
       messageText = buildNightMessage({
@@ -318,6 +329,7 @@ export async function processDailySchedules(bot, now = Date.now()) {
         tz: s.tz,
         persona,
         now,
+        exprMode,
       });
     }
 

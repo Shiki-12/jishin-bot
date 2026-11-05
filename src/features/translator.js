@@ -4,7 +4,8 @@ import {
   parseTranslateArgs,
   parseSummarizeArgs,
 } from '../core/translator.js';
-import { getSetting } from '../core/settings.js';
+import { getSetting, getEffectiveExpressionMode } from '../core/settings.js';
+import { shapeReply } from '../core/expression.js';
 import { getPersonality } from '../personalities/index.js';
 
 /**
@@ -70,10 +71,12 @@ export default {
             targetLang: parsed.targetLang,
           });
 
-          const intro =
+          const rawIntro =
             typeof persona.strings?.translateIntro === 'function'
               ? persona.strings.translateIntro(res.targetLang)
               : `Berikut hasil terjemahan ke ${res.targetLang}:`;
+          const exprMode = getEffectiveExpressionMode(ctx);
+          const intro = shapeReply(rawIntro, { mode: exprMode, persona: persona.id });
 
           await safeReply(ctx, `${intro}\n\n${res.translatedText}`);
         } catch (err) {
@@ -128,9 +131,11 @@ export default {
 
           const res = await summarizeText({ text: parsed.text });
 
-          const intro =
+          const rawIntro =
             persona.strings?.summarizeIntro ||
             'Berikut ringkasan poin-poin pentingnya:';
+          const exprMode = getEffectiveExpressionMode(ctx);
+          const intro = shapeReply(rawIntro, { mode: exprMode, persona: persona.id });
 
           await safeReply(ctx, `${intro}\n\n${res.summaryText}`);
         } catch (err) {
@@ -170,10 +175,12 @@ export default {
 
         try {
           const res = await translateText({ text, targetLang });
-          const intro =
+          const rawIntro =
             typeof persona.strings?.translateIntro === 'function'
               ? persona.strings.translateIntro(res.targetLang)
               : `Berikut hasil terjemahan ke ${res.targetLang}:`;
+          const exprMode = getEffectiveExpressionMode(ctx);
+          const intro = shapeReply(rawIntro, { mode: exprMode, persona: persona.id });
 
           await safeReply(ctx, `${intro}\n\n${res.translatedText}`);
         } catch (err) {
@@ -195,9 +202,11 @@ export default {
 
         try {
           const res = await summarizeText({ text });
-          const intro =
+          const rawIntro =
             persona.strings?.summarizeIntro ||
             'Berikut ringkasan poin-poin pentingnya:';
+          const exprMode = getEffectiveExpressionMode(ctx);
+          const intro = shapeReply(rawIntro, { mode: exprMode, persona: persona.id });
 
           await safeReply(ctx, `${intro}\n\n${res.summaryText}`);
         } catch (err) {

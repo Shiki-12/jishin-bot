@@ -1,7 +1,7 @@
 import { getDb } from './db.js';
 import { getPersonality } from '../personalities/index.js';
 
-const ALLOWED_KEYS = new Set(['tz', 'persona', 'lang', 'gif_freq', 'city', 'adzan', 'adzan_lead', 'adzan_last_date', 'voice_reply']);
+const ALLOWED_KEYS = new Set(['tz', 'persona', 'lang', 'gif_freq', 'city', 'adzan', 'adzan_lead', 'adzan_last_date', 'voice_reply', 'expression_mode']);
 
 const DEFAULT_SETTINGS = {
   tz: 'Asia/Jakarta',
@@ -13,6 +13,7 @@ const DEFAULT_SETTINGS = {
   adzan_lead: 10,
   adzan_last_date: null,
   voice_reply: 0,
+  expression_mode: null,
 };
 
 /**
@@ -90,6 +91,16 @@ export function getEffectivePersona(ctx) {
 
   const defaultPersona = getPersonality('tsundere', ctx);
   return { persona: defaultPersona, id: 'tsundere', source: 'default' };
+}
+
+/**
+ * Ambil mode gaya ekspresi efektif (mixed / emoji / kaomoji / plain / off).
+ * Pilihan chat mengalahkan konfigurasi env EXPRESSION_MODE.
+ */
+export function getEffectiveExpressionMode(ctx) {
+  const chosen = getSetting(ctx, 'expression_mode', null);
+  if (chosen) return chosen;
+  return process.env.EXPRESSION_MODE || 'mixed';
 }
 
 /**

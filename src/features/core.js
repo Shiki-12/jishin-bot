@@ -2,7 +2,8 @@ import { clearHistory } from '../memory.js';
 import { clearSummary } from '../core/facts.js';
 import { getPersonality, listPersonalities } from '../personalities/index.js';
 import { searchGif } from '../giphy.js';
-import { getSetting, getEffectivePersona } from '../core/settings.js';
+import { getSetting, getEffectivePersona, getEffectiveExpressionMode } from '../core/settings.js';
+import { shapeReply } from '../core/expression.js';
 import { isAdmin } from '../core/guards.js';
 
 let activeCommandsGetter = () => [];
@@ -28,11 +29,13 @@ export default {
       description: 'Mulai percakapan dengan bot',
       handler: async (ctx) => {
         const persona = resolvePersona(ctx);
+        const exprMode = getEffectiveExpressionMode(ctx);
+        const greeting = shapeReply(persona.greeting, { mode: exprMode, persona: persona.id });
         const isGroup = ctx.chat?.type && ctx.chat.type !== 'private';
         if (isGroup) {
           const botUser = ctx.me?.username ? `@${ctx.me.username}` : 'bot';
           const groupIntro =
-            `${persona.greeting}\n\n` +
+            `${greeting}\n\n` +
             'ℹ️ *Informasi Penggunaan Grup:*\n' +
             `• Bot hanya merespons jika di-mention (${botUser}) atau pesannya di-reply (kecuali admin menyalakan /chatty on).\n` +
             '• Bot menyimpan penyangga 200 pesan teks terakhir di grup ini untuk fitur ringkasan /rangkum_grup.\n' +
@@ -40,7 +43,7 @@ export default {
           await ctx.reply(groupIntro, { parse_mode: 'Markdown' });
           return;
         }
-        await ctx.reply(persona.greeting);
+        await ctx.reply(greeting);
       },
     },
     {
@@ -50,9 +53,11 @@ export default {
         clearHistory(ctx.chat.id);
         clearSummary(ctx.chat.id);
         const persona = resolvePersona(ctx);
-        const text =
+        const exprMode = getEffectiveExpressionMode(ctx);
+        const rawText =
           persona.strings?.forgetSuccess ??
           'Hah, kamu mau aku lupa semuanya? ...Ya udah, terserah. Aku nggak peduli kok. 🙄';
+        const text = shapeReply(rawText, { mode: exprMode, persona: persona.id });
         await ctx.reply(text);
       },
     },

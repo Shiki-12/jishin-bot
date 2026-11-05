@@ -6,7 +6,8 @@ import { addMessage, flush, getHistory } from './memory.js';
 import { getPersonality } from './personalities/index.js';
 import { loadFeatures, registerFeatures, syncBotCommands, ensureAdminCommands } from './core/loader.js';
 import { closeDb, getDb, upsertChat, upsertUser } from './core/db.js';
-import { getSetting, getEffectivePersona } from './core/settings.js';
+import { getSetting, getEffectivePersona, getEffectiveExpressionMode } from './core/settings.js';
+import { shapeReply } from './core/expression.js';
 import { buildSystemPrompt, extractActions } from './core/actions.js';
 import { isUserAllowed, isAdmin, isStaleMessage, isInputTooLong, RateLimiter, getAdminIds } from './core/guards.js';
 import { startScheduler, stopScheduler } from './core/scheduler.js';
@@ -226,6 +227,12 @@ async function handleUserChatMessage(ctx, rawText, isPrivate, replyOptions = {},
           await ctx.reply('...Hmph. Aku nggak mau jawab itu.');
           return;
         }
+
+        const exprMode = getEffectiveExpressionMode(ctx);
+        raw = shapeReply(raw, {
+          mode: exprMode,
+          persona: activePersona.id,
+        });
 
         let { text: reply, actions, invalidTags } = extractActions(raw, allTags);
 

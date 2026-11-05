@@ -1,5 +1,7 @@
 import { getDb } from './db.js';
 import { getPersonality } from '../personalities/index.js';
+import { getEffectiveExpressionMode } from './settings.js';
+import { shapeReply } from './expression.js';
 
 /**
  * Validasi dan parse format jam tenang HH:mm-HH:mm.
@@ -238,10 +240,19 @@ export async function processProactiveMessages(bot, now = Date.now(), db = getDb
       db,
     });
 
+    const exprMode = getEffectiveExpressionMode({
+      chat: { id: row.user_id, type: 'private' },
+      from: { id: row.user_id },
+    });
+    const shapedMessage = shapeReply(message, {
+      mode: exprMode,
+      persona: persona.id || 'tsundere',
+    });
+
     // 5. Kirim pesan ke user
     try {
       if (bot?.api?.sendMessage) {
-        await bot.api.sendMessage(row.user_id, message);
+        await bot.api.sendMessage(row.user_id, shapedMessage);
       }
 
       db.prepare(

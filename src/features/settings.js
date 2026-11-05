@@ -11,6 +11,14 @@ function renderMainMenu(ctx) {
   const gifFreq = getSetting(ctx, 'gif_freq', 'normal');
   const personaId = getSetting(ctx, 'persona', 'tsundere');
   const lang = getSetting(ctx, 'lang', 'id');
+  const exprMode = getSetting(ctx, 'expression_mode', process.env.EXPRESSION_MODE || 'mixed');
+  const exprLabels = {
+    mixed: 'Campur',
+    emoji: 'Emoji saja',
+    kaomoji: 'Kaomoji saja',
+    plain: 'Polos',
+  };
+  const exprDisplay = exprLabels[exprMode] || exprMode;
 
   const p = getPersona(ctx);
   const header = p.strings?.settingsHeader ?? '⚙️ *Pengaturan Bot*';
@@ -22,6 +30,7 @@ function renderMainMenu(ctx) {
     `• Frekuensi GIF: \`${gifFreq}\``,
     `• Persona: \`${personaId}\``,
     `• Bahasa: \`${lang}\``,
+    `• Gaya Ekspresi: \`${exprDisplay}\``,
     '',
     'Pilih opsi di bawah untuk mengubah:',
   ].join('\n');
@@ -33,7 +42,28 @@ function renderMainMenu(ctx) {
     .text('🎭 Persona', 'set:menu:persona')
     .text('🗣️ Bahasa', 'set:menu:lang')
     .row()
+    .text('Gaya Ekspresi', 'set:menu:expr')
+    .row()
     .text('✖️ Tutup', 'set:close');
+
+  return { text, keyboard };
+}
+
+function renderExprMenu() {
+  const text = [
+    '*Pengaturan Gaya Ekspresi*',
+    '',
+    'Pilih gaya penanda ekspresi pada balasan bot:',
+  ].join('\n');
+
+  const keyboard = new InlineKeyboard()
+    .text('Campur (Default)', 'set:val:expression_mode:mixed')
+    .text('Emoji saja', 'set:val:expression_mode:emoji')
+    .row()
+    .text('Kaomoji saja', 'set:val:expression_mode:kaomoji')
+    .text('Polos', 'set:val:expression_mode:plain')
+    .row()
+    .text('🔙 Kembali', 'set:menu:main');
 
   return { text, keyboard };
 }
@@ -203,6 +233,16 @@ export default {
 
         if (data === 'set:menu:lang') {
           const { text, keyboard } = renderLangMenu();
+          await ctx.editMessageText(text, {
+            parse_mode: 'Markdown',
+            reply_markup: keyboard,
+          }).catch(() => {});
+          await ctx.answerCallbackQuery().catch(() => {});
+          return;
+        }
+
+        if (data === 'set:menu:expr') {
+          const { text, keyboard } = renderExprMenu();
           await ctx.editMessageText(text, {
             parse_mode: 'Markdown',
             reply_markup: keyboard,

@@ -199,8 +199,10 @@ describe('F-22: Mika Chat Duluan (Proaktif)', () => {
       const uid = TEST_USERS[0];
       setProactiveEnabled(uid, 1);
 
+      // Waktu siang: 14:00 WIB (bukan jam tenang)
+      const now = new Date('2026-11-05T07:00:00.000Z').getTime(); // 14:00 WIB
       // Pastikan aktivitas terakhir > 8 jam yang lalu
-      const pastTime = Date.now() - 10 * 3600_000;
+      const pastTime = now - 10 * 3600_000;
       db.prepare(
         'INSERT INTO messages (chat_id, role, text, created_at) VALUES (?, ?, ?, ?)',
       ).run(uid, 'user', 'halo', pastTime);
@@ -214,8 +216,6 @@ describe('F-22: Mika Chat Duluan (Proaktif)', () => {
         },
       };
 
-      // Waktu siang: 14:00 WIB (bukan jam tenang)
-      const now = new Date('2026-11-05T07:00:00.000Z').getTime(); // 14:00 WIB
       const sentCount = await processProactiveMessages(mockBot, now);
 
       assert.equal(sentCount, 1);
