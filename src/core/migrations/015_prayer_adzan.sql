@@ -1,0 +1,9 @@
+-- Migrasi 015: Kolom adzan untuk users dan chats (F-41: Jadwal Sholat)
+ALTER TABLE users ADD COLUMN adzan INTEGER DEFAULT 0;
+ALTER TABLE users ADD COLUMN adzan_lead INTEGER DEFAULT 10;
+ALTER TABLE users ADD COLUMN adzan_last_date TEXT DEFAULT NULL;
+
+ALTER TABLE chats ADD COLUMN adzan INTEGER DEFAULT 0;
+ALTER TABLE chats ADD COLUMN adzan_lead INTEGER DEFAULT 10;
+ALTER TABLE chats ADD COLUMN adzan_last_date TEXT DEFAULT NULL;
+

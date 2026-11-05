@@ -1,0 +1,12 @@
+services:
+  bot:
+    build: .
+    container_name: telegram_ai_bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+    ports:
+      - "${PORT:-3000}:${PORT:-3000}"
+
